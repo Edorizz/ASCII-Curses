@@ -1,0 +1,4 @@
+*.swp
+*.o
+ascii_curses
+*.png
