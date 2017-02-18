@@ -5,7 +5,7 @@ typedef unsigned char BYTE;
 
 /* Single pixel */
 typedef struct {
-	BYTE r, g, b;
+	BYTE r, g, b, a;
 } pixel_t;
 
 /* Image data */
