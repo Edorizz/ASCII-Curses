@@ -10,7 +10,8 @@
 bitmap_t *read_png_image(const char *file_path)
 {
 	char header[8];
-	int width, height, color_type, bit_depth, number_of_passes, i;
+	int width, height, color_type, bit_depth, number_of_passes, row_bytes;
+	int i;
 	bitmap_t *img;
 	FILE *fp;
 
@@ -64,7 +65,7 @@ bitmap_t *read_png_image(const char *file_path)
 	color_type = png_get_color_type(png_ptr, info_ptr);
 	bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
-	/* Debugging */
+	/* Display image information */
 	printf("%s (%dx%d) color_type:%d bit_depth:%d\n",
 			file_path, width, height, color_type, bit_depth);
 
@@ -78,27 +79,24 @@ bitmap_t *read_png_image(const char *file_path)
 	}
 
 	/* Read image data */
+	row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 	row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
 	for (i = 0; i != height; ++i)
-		row_pointers[i] = (png_byte*) malloc(png_get_rowbytes(png_ptr, info_ptr));
+		row_pointers[i] = (png_byte*) malloc(row_bytes);
 	png_read_image(png_ptr, row_pointers);
 
 	/* Fill bitmap with image data */
 	img = (bitmap_t*) malloc(sizeof(*img));
 	img->width = width;
 	img->height = height;
-	img->pixel_data = (pixel_t*) malloc(width * height * 4);
+	img->color_type = color_type;
+	img->pixel_size = row_bytes / width;
+	img->pixel_data = (BYTE*) malloc(row_bytes * height);
+
 	for (i = 0; i != height; ++i) {
-		memcpy(img->pixel_data + width * i, row_pointers[i], width * 4);
+		memcpy(img->pixel_data + img->pixel_size * (width * i), row_pointers[i], row_bytes);
 		free(row_pointers[i]);
 	}
-
-	/*
-	for (i = 0; i != width; ++i) {
-		printf("r:%3d g:%3d b:%3d a?:%3d\n",
-			img->pixel_data[i].r, img->pixel_data[i].g, img->pixel_data[i].b, img->pixel_data[i].a);
-	}
-	*/
 
 	/* Free memory */
 	free(row_pointers);
