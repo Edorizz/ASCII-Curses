@@ -80,9 +80,9 @@ bitmap_t *read_png_image(const char *file_path)
 
 	/* Read image data */
 	row_bytes = png_get_rowbytes(png_ptr, info_ptr);
-	row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+	row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
 	for (i = 0; i != height; ++i)
-		row_pointers[i] = (png_byte*) malloc(row_bytes);
+		row_pointers[i] = (png_byte*)malloc(row_bytes);
 	png_read_image(png_ptr, row_pointers);
 
 	/* Fill bitmap with image data */
@@ -91,8 +91,8 @@ bitmap_t *read_png_image(const char *file_path)
 	img->height = height;
 	img->color_type = color_type;
 	img->pixel_size = row_bytes / width;
-	img->pixel_data = (BYTE*) malloc(row_bytes * height);
 
+	img->pixel_data = (BYTE*)malloc(row_bytes * height);
 	for (i = 0; i != height; ++i) {
 		memcpy(img->pixel_data + img->pixel_size * (width * i), row_pointers[i], row_bytes);
 		free(row_pointers[i]);
