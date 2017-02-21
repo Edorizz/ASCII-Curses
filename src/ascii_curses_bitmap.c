@@ -4,25 +4,16 @@
 
 BYTE grayscale_value(BYTE *pixel, int color_type)
 {
-	pixelRGB_t *pRGB;
 	pixelRGBA_t *pRGBA;
 	int grayscale;
 
-	switch (color_type) {
-		case PNG_COLOR_TYPE_RGB:
-			pRGB = (pixelRGB_t*) pixel;
-			grayscale = (pRGB->r + pRGB->g + pRGB->b) / 3;
+	pRGBA = (pixelRGBA_t*)pixel;
+	grayscale = 0.21f * pRGBA->r + 0.72f * pRGBA->g + 0.07 * pRGBA->b;
 
-			return grayscale;
-		case PNG_COLOR_TYPE_RGB_ALPHA:
-			pRGBA = (pixelRGBA_t*) pixel;
-			grayscale = (pRGBA->r + pRGBA->g + pRGBA->b) / 3;
+	if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+		grayscale += (255 - grayscale) * ((255 - pRGBA->a) / 255);
 
-			return grayscale + (255 - grayscale) * ((255 - pRGBA->a) / 255);
-	}
-
-	fprintf(stderr, "Colortype %d not supported\n", color_type);
-	return 255;
+	return grayscale;
 }
 
 BYTE *pixel_at(bitmap_t *bmp, int y, int x)
@@ -35,7 +26,7 @@ BYTE avg_grayscale(bitmap_t *bmp, int y, int x, int count)
 	int avg_grayscale, i;
 
 	avg_grayscale = 0;
-	for (i = 0; i < count && x + i < bmp->width; ++i)
+	for (i = 0; x + i < bmp->width && i < count; ++i)
 		avg_grayscale += grayscale_value(pixel_at(bmp, y, x + i), bmp->color_type);
 
 	return avg_grayscale / i;
@@ -45,10 +36,10 @@ BYTE avg_grayscale_block(bitmap_t *bmp, int y, int x, int block_size)
 {
 	int i, grayscale;
 
-	for (i = grayscale = 0; i < block_size; ++i)
+	for (i = grayscale = 0; i < bmp->height - y && i < block_size; ++i)
 		grayscale += avg_grayscale(bmp, y + i, x, block_size);
 
-	return grayscale / block_size;
+	return grayscale / i;
 }
 
 void print_ascii(bitmap_t *bmp, int block_size)
