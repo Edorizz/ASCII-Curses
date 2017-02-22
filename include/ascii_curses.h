@@ -1,15 +1,17 @@
 #ifndef ASCII_CURSES_H
 #define ASCII_CURSES_H
 
+#include <ncurses.h>
 #include <png.h>
 
 typedef unsigned char BYTE;
 
-/* Single pixel */
+/* Single RGBA pixel */
 typedef struct {
 	BYTE r, g, b, a;
 } pixelRGBA_t;
 
+/* Single RGB pixel */
 typedef struct {
 	BYTE r, g, b;
 } pixelRGB_t;
@@ -36,6 +38,6 @@ BYTE avg_grayscale(bitmap_t *bmp, int y, int x, int count);
 BYTE avg_grayscale_block(bitmap_t *bmp, int y, int x, int size);
 
 /* Print ascii equivalent of the specified image */
-void print_ascii(bitmap_t *bmp, int block_size);
+void print_ascii(bitmap_t *bmp, int y, int x, int block_size);
 
 #endif /* ASCII_CURSES_H */

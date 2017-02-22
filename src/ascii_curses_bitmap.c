@@ -42,7 +42,7 @@ BYTE avg_grayscale_block(bitmap_t *bmp, int y, int x, int block_size)
 	return grayscale / i;
 }
 
-void print_ascii(bitmap_t *bmp, int block_size)
+void print_ascii(bitmap_t *bmp, int y, int x, int block_size)
 {
 	const char *grayscale_chars = "@%#*+=-:. ";
 	int i, j, ch;
@@ -53,7 +53,7 @@ void print_ascii(bitmap_t *bmp, int block_size)
 		for (j = 0; j < bmp->width; j += block_size) {
 			ch = grayscale_chars[(int)(avg_grayscale_block(bmp, i, j, block_size) / scale)];
 
-			printf("%c%c", ch, ch);
+			mvprintw(i / block_size + y, (j / block_size + x) * 2, "%c%c", ch, ch);
 		}
 		putchar('\n');
 	}

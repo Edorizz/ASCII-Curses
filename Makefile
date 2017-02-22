@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-c -std=c99 -pedantic -Wall
-LFLAGS=-lpng
+LFLAGS=-lpng -lncurses
 
 ascii_curses: output/ascii_curses.o output/ascii_curses_image.o output/ascii_curses_bitmap.o
 	$(CC) output/ascii_curses.o output/ascii_curses_image.o output/ascii_curses_bitmap.o -o ascii_curses $(LFLAGS)
