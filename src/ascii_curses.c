@@ -4,6 +4,10 @@
 
 #include "../include/ascii_curses.h"
 
+#define MULTIPLIER	2.0f
+#define MIN(a, b)	((a) > (b) ? (b) : (a))
+#define MAX(a, b)	((a) > (b) ? (a) : (b))
+
 void usage(void)
 {
 	printf("usage: ascii_curses <file_path.png> <blocksize>\n");
@@ -22,49 +26,70 @@ void initcurses(void)
 int main(int argc, char **argv)
 {
 	ascii_image_t img = { 0 };
-	int x, y, ch, draw, convert;
+	int ch, i, image_index = 0, mv;
 
-	if (argc != 3 || sscanf(argv[2], "%d", &img.block_size) != 1) {
-		usage();
-		return 1;
+	/* Process command-line arguments */
+	for (i = 1; i != argc; ++i) {
+		if (strcmp("-d", argv[i]) == 0)
+			img.flags |= ASCII_BACKGROUND_DARK;
+		else if (image_index == 0)
+			image_index = i;
 	}
 
-	if ((img.bmp = read_png_image(argv[1])) == NULL) {
-		fprintf(stderr, "%s: Failed to read %s\n", argv[0], argv[1]);
+	/* Exit if image failed to load or user did not input file path */
+	if (image_index == 0 || (img.bmp = read_png_image(argv[image_index])) == NULL) {
+		usage();
 		return 1;
 	}
 
 	initcurses();
 
-	x = y = 0;
-	draw = convert = 1;
-	while (tolower(ch = getch()) != KEY_F(1)) {
+	img.block_size = 8;
+	img.flags |= ASCII_DRAW | ASCII_CONVERT;
+
+	/* Main message loop */
+	while ((ch = getch()) != KEY_F(1)) {
 		switch (tolower(ch)) {
-			case 'a':	++x;	draw = 1;	break;
-			case 'd':	--x;	draw = 1;	break;
-			case 'w':	++y;	draw = 1;	break;
-			case 's':	--y;	draw = 1;	break;
+			case 'a':	img.pos_x += mv;	img.flags |= ASCII_DRAW;	break;
+			case 'd':	img.pos_x -= mv;	img.flags |= ASCII_DRAW;	break;
+			case 'w':	img.pos_y += mv;	img.flags |= ASCII_DRAW;	break;
+			case 's':	img.pos_y -= mv;	img.flags |= ASCII_DRAW;	break;
 			case 'q':
-					if (img.block_size < img.bmp->width)
+					if (img.block_size < img.bmp->width) {
+						img.pos_x = ((float)img.pos_x / img.block_size) * (img.block_size - 1);
+						img.pos_y = ((float)img.pos_y / img.block_size) * (img.block_size - 1);
+
 						++img.block_size;
-					convert = draw = 1;
+						img.flags |= ASCII_DRAW | ASCII_CONVERT;
+					}
+
 					break;
 			case 'e':
-					if (img.block_size > 1)
+					if (img.block_size > 1) {
+						img.pos_x = ((float)img.pos_x / img.block_size) * (img.block_size + 1);
+						img.pos_y = ((float)img.pos_y / img.block_size) * (img.block_size + 1);
+
 						--img.block_size;
-					convert = draw = 1;
+						img.flags |= ASCII_DRAW | ASCII_CONVERT;
+					}
+
 					break;
 		}
 
-		if (convert)
+		if (img.flags & ASCII_CONVERT) {
 			to_ascii(&img);
+			mv = MAX(1.0f / ((float)LINES / (float)img.height), 1.0f);
 
-		if (draw) {
+			img.flags ^= ASCII_CONVERT;
+		}
+
+		if (img.flags & ASCII_DRAW) {
 			clear();
-			print_ascii(&img, y, x);
+			print_ascii(&img);
+			mvprintw(0, 0, "(mv:%d)", mv);
 			refresh();
 
-			draw = 0;
+			img.flags ^= ASCII_DRAW;
 		}
 
 	}

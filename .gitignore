@@ -2,4 +2,4 @@
 *.o
 ascii_curses
 *.png
-images/
+img/

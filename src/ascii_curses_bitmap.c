@@ -47,7 +47,6 @@ BYTE avg_grayscale_block(bitmap_t *bmp, int y, int x, int block_size)
 void to_ascii(ascii_image_t *img)
 {
 	const char *grayscale_chars = "@%#*+=-:. ";
-	/*static const char *grayscale_chars = " .:-=+*#$@";*/
 	const float scale = 256.0f / (float)strlen(grayscale_chars);
 
 	int i, j, ch;
@@ -64,13 +63,9 @@ void to_ascii(ascii_image_t *img)
 		++img->height;
 
 	img->ascii_data = malloc(img->width * img->height);
-	/*mvprintw(1, 0, "%d, %d", img->width, img->height);*/
 
 	/* Image data */
 	for (i = 0; i < img->bmp->height; i += img->block_size) {
-		/*mvprintw(0, 0, "%d", tmp++);
-		refresh();
-		sleep(1);*/
 		for (j = 0; j < img->bmp->width; j += img->block_size) {
 			ch = grayscale_chars[(int)(avg_grayscale_block(img->bmp, i, j, img->block_size) / scale)];
 
@@ -79,7 +74,7 @@ void to_ascii(ascii_image_t *img)
 	}
 }
 
-void print_ascii(ascii_image_t *img, int y, int x)
+void print_ascii(ascii_image_t *img)
 {
 	int i, j, ch;
 
@@ -87,7 +82,7 @@ void print_ascii(ascii_image_t *img, int y, int x)
 		for (j = 0; j < img->width; ++j) {
 			ch = img->ascii_data[i * img->width + j];
 
-			mvprintw(i + y, j * 2 + x, "%c%c", ch, ch);
+			mvprintw(i + img->pos_y, j * 2 + img->pos_x, "%c%c", ch, ch);
 		}
 	}
 }

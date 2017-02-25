@@ -4,6 +4,10 @@
 #include <ncurses.h>
 #include <png.h>
 
+#define ASCII_DRAW		1
+#define ASCII_CONVERT		2
+#define ASCII_BACKGROUND_DARK	4
+
 typedef unsigned char BYTE;
 
 /* Single RGBA pixel */
@@ -29,7 +33,9 @@ typedef struct {
 	bitmap_t *bmp;
 	BYTE *ascii_data;
 	int width, height;
+	int pos_x, pos_y;
 	int block_size;
+	int flags;
 } ascii_image_t;
 
 /* Read PNG image and store it in a bitmap_t structure */
@@ -48,6 +54,6 @@ BYTE avg_grayscale_block(bitmap_t *bmp, int y, int x, int size);
 /* Calculate ASCII equivaluent of the specified image */
 void to_ascii(ascii_image_t *img);
 /* Just print the damn thing */
-void print_ascii(ascii_image_t *img, int y, int x);
+void print_ascii(ascii_image_t *img);
 
 #endif /* ASCII_CURSES_H */
