@@ -4,7 +4,6 @@
 
 #include "../include/ascii_curses.h"
 
-#define MULTIPLIER	2.0f
 #define MIN(a, b)	((a) > (b) ? (b) : (a))
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
 
@@ -56,8 +55,8 @@ int main(int argc, char **argv)
 			case 's':	img.pos_y -= mv;	img.flags |= ASCII_DRAW;	break;
 			case 'q':
 					if (img.block_size < img.bmp->width) {
-						img.pos_x = ((float)img.pos_x / img.block_size) * (img.block_size - 1);
-						img.pos_y = ((float)img.pos_y / img.block_size) * (img.block_size - 1);
+						img.pos_x = ((float)img.pos_x / img.block_size) * MAX((img.block_size - 1), 1);
+						img.pos_y = ((float)img.pos_y / img.block_size) * MAX((img.block_size - 1), 1);
 
 						++img.block_size;
 						img.flags |= ASCII_DRAW | ASCII_CONVERT;
@@ -76,6 +75,7 @@ int main(int argc, char **argv)
 					break;
 		}
 
+		/* Only convert if necessary */
 		if (img.flags & ASCII_CONVERT) {
 			to_ascii(&img);
 			mv = MAX(1.0f / ((float)LINES / (float)img.height), 1.0f);
@@ -83,10 +83,21 @@ int main(int argc, char **argv)
 			img.flags ^= ASCII_CONVERT;
 		}
 
+		/* Only draw if necessary */
 		if (img.flags & ASCII_DRAW) {
 			clear();
+
+			/* Print image */
 			print_ascii(&img);
-			mvprintw(0, 0, "(mv:%d)", mv);
+
+			/* Status bar */
+			mvprintw(LINES - 1, 0, "%s (%d x %d):(%d x %d) at:(%d, %d) block_size:%d(%d%%)\n", argv[image_index],
+					img.bmp->width, img.bmp->height,
+					img.width, img.height,
+					-img.pos_x, -img.pos_y,
+					img.block_size, img.width * 100 / img.bmp->width);
+			mvchgat(LINES -1, 0, -1, A_REVERSE, 0, NULL);
+
 			refresh();
 
 			img.flags ^= ASCII_DRAW;

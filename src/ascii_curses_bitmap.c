@@ -78,7 +78,7 @@ void print_ascii(ascii_image_t *img)
 {
 	int i, j, ch;
 
-	for (i = 0; i < img->height; ++i) {
+	for (i = 0; i + img->pos_y < LINES - 1 && i < img->height; ++i) {
 		for (j = 0; j < img->width; ++j) {
 			ch = img->ascii_data[i * img->width + j];
 
