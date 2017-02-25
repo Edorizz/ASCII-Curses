@@ -4,13 +4,16 @@
 #include <string.h>
 #include <unistd.h>
 
-BYTE grayscale_value(BYTE *pixel, int color_type)
+BYTE grayscale_value(BYTE *pixel, int color_type, int background)
 {
 	pixelRGBA_t *pRGBA;
 	int grayscale;
 
 	pRGBA = (pixelRGBA_t*)pixel;
 	grayscale = 0.21f * pRGBA->r + 0.72f * pRGBA->g + 0.07 * pRGBA->b;
+
+	if (background & ASCII_BACKGROUND_DARK)
+		grayscale = 255 - grayscale;
 
 	if (color_type == PNG_COLOR_TYPE_RGB_ALPHA)
 		grayscale += (255 - grayscale) * ((255 - pRGBA->a) / 255);
@@ -23,23 +26,23 @@ BYTE *pixel_at(bitmap_t *bmp, int y, int x)
 	return &bmp->pixel_data[bmp->pixel_size * (bmp->width * y + x)];
 }
 
-BYTE avg_grayscale(bitmap_t *bmp, int y, int x, int count)
+BYTE avg_grayscale(ascii_image_t *img, int y, int x, int count)
 {
 	int avg_grayscale, i;
 
 	avg_grayscale = 0;
-	for (i = 0; x + i < bmp->width && i < count; ++i)
-		avg_grayscale += grayscale_value(pixel_at(bmp, y, x + i), bmp->color_type);
+	for (i = 0; x + i < img->bmp->width && i < count; ++i)
+		avg_grayscale += grayscale_value(pixel_at(img->bmp, y, x + i), img->bmp->color_type, img->flags);
 
 	return avg_grayscale / i;
 }
 
-BYTE avg_grayscale_block(bitmap_t *bmp, int y, int x, int block_size)
+BYTE avg_grayscale_block(ascii_image_t *img, int y, int x)
 {
 	int i, grayscale;
 
-	for (i = grayscale = 0; y + i < bmp->height && i < block_size; ++i)
-		grayscale += avg_grayscale(bmp, y + i, x, block_size);
+	for (i = grayscale = 0; y + i < img->bmp->height && i < img->block_size; ++i)
+		grayscale += avg_grayscale(img, y + i, x, img->block_size);
 
 	return grayscale / i;
 }
@@ -67,7 +70,7 @@ void to_ascii(ascii_image_t *img)
 	/* Image data */
 	for (i = 0; i < img->bmp->height; i += img->block_size) {
 		for (j = 0; j < img->bmp->width; j += img->block_size) {
-			ch = grayscale_chars[(int)(avg_grayscale_block(img->bmp, i, j, img->block_size) / scale)];
+			ch = grayscale_chars[(int)(avg_grayscale_block(img, i, j) / scale)];
 
 			img->ascii_data[(i / img->block_size) * img->width + (j / img->block_size)] = ch;
 		}
