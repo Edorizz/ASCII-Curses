@@ -8,6 +8,18 @@
 #define ASCII_CONVERT		2
 #define ASCII_BACKGROUND_DARK	4
 
+#define ASCII_COLOR_RED		1
+#define ASCII_COLOR_GREEN	2
+#define ASCII_COLOR_YELLOW	3
+#define ASCII_COLOR_BLUE	4
+#define ASCII_COLOR_MAGENTA	5
+#define ASCII_COLOR_CYAN	6
+#define ASCII_COLOR_MAX		7
+
+#define MIN(a, b)	((a) > (b) ? (b) : (a))
+#define MAX(a, b)	((a) > (b) ? (a) : (b))
+#define ABS(a)		((a) < 0 ? -(a) : (a))
+
 typedef unsigned char BYTE;
 
 /* Single RGBA pixel */

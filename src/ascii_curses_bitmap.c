@@ -4,6 +4,25 @@
 #include <string.h>
 #include <unistd.h>
 
+BYTE *pixel_at(bitmap_t *bmp, int y, int x)
+{
+	return &bmp->pixel_data[bmp->pixel_size * (bmp->width * y + x)];
+}
+
+BYTE color_index(pixelRGB_t *color)
+{
+	int dist_rg, dist_gb, dist_rb;
+
+	dist_rg = ABS(color->r - color->g);
+	dist_gb = ABS(color->g - color->b);
+	dist_rb = ABS(color->r - color->b);
+
+	if (dist_rg + dist_gb + dist_rb < 100)
+		return 0;
+	else
+		return rand() % 6 + 1;
+}
+
 BYTE grayscale_value(BYTE *pixel, int color_type, int background)
 {
 	pixelRGBA_t *pRGBA;
@@ -19,11 +38,6 @@ BYTE grayscale_value(BYTE *pixel, int color_type, int background)
 		grayscale += (255 - grayscale) * ((255 - pRGBA->a) / 255);
 
 	return grayscale;
-}
-
-BYTE *pixel_at(bitmap_t *bmp, int y, int x)
-{
-	return &bmp->pixel_data[bmp->pixel_size * (bmp->width * y + x)];
 }
 
 BYTE avg_grayscale(ascii_image_t *img, int y, int x, int count)
@@ -51,14 +65,15 @@ BYTE avg_grayscale_block(ascii_image_t *img, int y, int x)
 void avg_color(ascii_image_t *img, int y, int x, int count, pixelRGB_t *color)
 {
 	int r, g, b, i;
+	pixelRGB_t *pixel;
 
 	r = g = b = 0;
 	for (i = 0; x + i < img->bmp->width && i < count; ++i) {
-		color = pixel_at(img->bmp, y, x + i);
+		pixel = (pixelRGB_t*)pixel_at(img->bmp, y, x + i);
 
-		r += color->r;
-		g += color->g;
-		b += color->b;
+		r += pixel->r;
+		g += pixel->g;
+		b += pixel->b;
 	}
 
 	color->r = r / i;
@@ -90,7 +105,7 @@ void to_ascii(ascii_image_t *img)
 	const float scale = 256.0f / (float)strlen(grayscale_chars);
 
 	int i, j, index, ch;
-	pixelRGB_t color;
+	pixelRGB_t color = { 69, 69, 69 };
 
 	if (img->ascii_data != NULL)
 		free(img->ascii_data);
@@ -127,14 +142,22 @@ void to_ascii(ascii_image_t *img)
 
 void print_ascii(ascii_image_t *img)
 {
-	int i, j;
+	int i, j, color;
+	pixelASCII_t *pixel;
 
 	/* Why do we stop at 'LINES - 1' in y but just at 'COLS' in x you may ask?
 	 * well, we have to take into account the status bar at the bottom for y
 	 * but not for x.
 	 */
-	for (i = 0; i + img->pos_y < LINES - 1 && i < img->height; ++i)
-		for (j = 0; j + img->pos_x < COLS && j < img->width; ++j)
-			mvprintw(i + img->pos_y, j + img->pos_x, "%c", img->ascii_data[i * img->width + j].ch);
+	for (i = 0; i + img->pos_y < LINES - 1 && i < img->height; ++i) {
+		for (j = 0; j + img->pos_x < COLS && j < img->width; ++j) {
+			pixel = &img->ascii_data[i * img->width + j];
+			color = color_index(&pixel->color);
+
+			attron(COLOR_PAIR(color));
+			mvprintw(i + img->pos_y, j + img->pos_x, "%c", pixel->ch);
+			attroff(COLOR_PAIR(color));
+		}
+	}
 }
 

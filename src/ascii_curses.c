@@ -1,21 +1,38 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
 #include "../include/ascii_curses.h"
 
-#define MIN(a, b)	((a) > (b) ? (b) : (a))
-#define MAX(a, b)	((a) > (b) ? (a) : (b))
-
 void usage(void)
 {
-	printf("usage: ascii_curses <file_path.png> <blocksize>\n");
+	printf("usage: ascii_curses [-d] <file_path.png>\n");
+}
+
+void initcolor(void)
+{
+	int i;
+
+	if (has_colors() == FALSE) {
+		endwin();
+		fprintf(stderr, "Your terminal doesn't support color >:(\n");
+		exit(1);
+	}
+		
+	use_default_colors();
+	start_color();
+
+	for (i = 1; i != ASCII_COLOR_MAX; ++i)
+		init_pair(i, COLOR_BLACK + i, -1);
 }
 
 void initcurses(void)
 {
 	initscr();
-	timeout(0);
+
+	initcolor();
+	timeout(-1);
 	curs_set(0);
 	cbreak();
 	keypad(stdscr, TRUE);
@@ -29,10 +46,15 @@ int main(int argc, char **argv)
 
 	/* Process command-line arguments */
 	for (i = 1; i != argc; ++i) {
-		if (strcmp("-d", argv[i]) == 0)
+		if (strcmp("-d", argv[i]) == 0) {
 			img.flags |= ASCII_BACKGROUND_DARK;
-		else if (image_index == 0)
+		} else if (image_index == 0) {
 			image_index = i;
+		} else {
+			fprintf(stderr, "ascii_curses: invalid argument '%s'\n", argv[i]);
+			usage();
+			return 1;
+		}
 	}
 
 	/* Exit if image failed to load or user did not input file path */
