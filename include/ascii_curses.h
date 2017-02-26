@@ -20,6 +20,12 @@ typedef struct {
 	BYTE r, g, b;
 } pixelRGB_t;
 
+/* Single ASCII pixel */
+typedef struct {
+	char ch;
+	pixelRGB_t color;
+} pixelASCII_t;
+
 /* Image data */
 typedef struct {
 	BYTE *pixel_data;
@@ -31,7 +37,8 @@ typedef struct {
 /* ASCII image data */
 typedef struct {
 	bitmap_t *bmp;
-	BYTE *ascii_data;
+	/*BYTE *ascii_data;*/
+	pixelASCII_t *ascii_data;
 	int width, height;
 	int pos_x, pos_y;
 	int block_size;
@@ -48,7 +55,7 @@ BYTE *pixel_at(bitmap_t *bmp, int y, int x);
 BYTE grayscale_value(BYTE *pixel, int color_type, int background);
 /* Average the grayscale value of all pixels in a row of size count starting from (y, x) */
 BYTE avg_grayscale(ascii_image_t *img, int y, int x, int count);
-/* Average the grayscale value of all pixels in a block of size * size starting from (y, x) */
+/* Average the grayscale value of all pixels in a block of 'block_size * (block_size / 2)' starting from (y, x) */
 BYTE avg_grayscale_block(ascii_image_t *img, int y, int x);
 
 /* Calculate ASCII equivaluent of the specified image */
