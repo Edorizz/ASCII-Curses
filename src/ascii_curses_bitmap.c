@@ -42,7 +42,7 @@ BYTE avg_grayscale_block(ascii_image_t *img, int y, int x)
 	int i, grayscale;
 
 	for (i = grayscale = 0; y + i < img->bmp->height && i < img->block_size; ++i)
-		grayscale += avg_grayscale(img, y + i, x, img->block_size);
+		grayscale += avg_grayscale(img, y + i, x, img->block_size / 2);
 
 	return grayscale / i;
 }
@@ -57,10 +57,10 @@ void to_ascii(ascii_image_t *img)
 	if (img->ascii_data != NULL)
 		free(img->ascii_data);
 
-	img->width = img->bmp->width / img->block_size;
+	img->width = img->bmp->width * 2 / img->block_size;
 	img->height = img->bmp->height / img->block_size;
 
-	if (img->width * img->block_size < img->bmp->width)
+	if (img->width * img->block_size < img->bmp->width * 2)
 		++img->width;
 	if (img->height * img->block_size < img->bmp->height)
 		++img->height;
@@ -69,24 +69,24 @@ void to_ascii(ascii_image_t *img)
 
 	/* Image data */
 	for (i = 0; i < img->bmp->height; i += img->block_size) {
-		for (j = 0; j < img->bmp->width; j += img->block_size) {
+		for (j = 0; j < img->bmp->width; j += img->block_size / 2) {
 			ch = grayscale_chars[(int)(avg_grayscale_block(img, i, j) / scale)];
 
-			img->ascii_data[(i / img->block_size) * img->width + (j / img->block_size)] = ch;
+			img->ascii_data[(i / img->block_size) * img->width + (j * 2 / img->block_size)] = ch;
 		}
 	}
 }
 
 void print_ascii(ascii_image_t *img)
 {
-	int i, j, ch;
+	int i, j;
 
-	for (i = 0; i + img->pos_y < LINES - 1 && i < img->height; ++i) {
-		for (j = 0; j < img->width; ++j) {
-			ch = img->ascii_data[i * img->width + j];
-
-			mvprintw(i + img->pos_y, j * 2 + img->pos_x, "%c%c", ch, ch);
-		}
-	}
+	/* Why do we stop at 'LINES - 1' in y but just at 'COLS' in x you may ask?
+	 * well, we have to take into account the status bar at the bottom for y
+	 * but not for x.
+	 */
+	for (i = 0; i + img->pos_y < LINES - 1 && i < img->height; ++i)
+		for (j = 0; j + img->pos_x < COLS && j < img->width; ++j)
+			mvprintw(i + img->pos_y, j + img->pos_x, "%c", img->ascii_data[i * img->width + j]);
 }
 
