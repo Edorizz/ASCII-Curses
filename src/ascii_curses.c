@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 
 					break;
 			case 'e':
-					if (img.block_size > 2) {
+					if (img.block_size > 1) {
 						img.pos_x = ((float)img.pos_x / img.block_size) * (img.block_size + 1);
 						img.pos_y = ((float)img.pos_y / img.block_size) * (img.block_size + 1);
 

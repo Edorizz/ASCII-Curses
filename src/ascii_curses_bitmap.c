@@ -93,8 +93,8 @@ BYTE avg_grayscale_block(ascii_image_t *img, int y, int x)
 	int grayscale, i;
 
 	grayscale = 0;
-	for (i = 0; y + i < img->bmp->height && i < img->block_size; ++i)
-		grayscale += avg_grayscale(img, y + i, x, img->block_size / 2);
+	for (i = 0; y + i < img->bmp->height && i < img->block_size * 2; ++i)
+		grayscale += avg_grayscale(img, y + i, x, img->block_size);
 
 	return grayscale / i;
 }
@@ -123,8 +123,8 @@ void avg_color_block(ascii_image_t *img, int y, int x, pixelRGB_t *color)
 	int r, g, b, i;
 
 	r = g = b = 0;
-	for (i = 0; y + i < img->bmp->height && i < img->block_size; ++i) {
-		avg_color(img, y + i, x, img->block_size / 2, color);
+	for (i = 0; y + i < img->bmp->height && i < img->block_size * 2; ++i) {
+		avg_color(img, y + i, x, img->block_size, color);
 
 		r += color->r;
 		g += color->g;
@@ -142,30 +142,30 @@ void to_ascii(ascii_image_t *img)
 	const float scale = 256.0f / (float)strlen(grayscale_chars);
 
 	int i, j, index, ch;
-	pixelRGB_t color = { 69, 69, 69 };
+	pixelRGB_t color;
 
 	if (img->ascii_data != NULL)
 		free(img->ascii_data);
 
-	img->width = img->bmp->width * 2 / img->block_size;
-	img->height = img->bmp->height / img->block_size;
+	img->width = img->bmp->width / img->block_size;
+	img->height = img->bmp->height / (img->block_size * 2);
 
-	if (img->width * img->block_size < img->bmp->width * 2)
+	if (img->width * img->block_size < img->bmp->width)
 		++img->width;
-	if (img->height * img->block_size < img->bmp->height)
+	if (img->height * img->block_size * 2 < img->bmp->height)
 		++img->height;
 
 	img->ascii_data = malloc(img->width * img->height * sizeof(*img->ascii_data));
 
 	/* Image data */
-	for (i = 0; i < img->bmp->height; i += img->block_size) {
-		for (j = 0; j < img->bmp->width; j += img->block_size / 2) {
+	for (i = 0; i < img->bmp->height; i += img->block_size * 2) {
+		for (j = 0; j < img->bmp->width; j += img->block_size) {
 			/* Get necessary data to form an ASCII pixel */
 			ch = grayscale_chars[(int)(avg_grayscale_block(img, i, j) / scale)];
 			avg_color_block(img, i, j, &color);
 
 			/* Calculate index */
-			index = (i / img->block_size) * img->width + (j * 2 / img->block_size);
+			index = (i / (img->block_size * 2)) * img->width + (j / img->block_size);
 
 			/* Create ASCII pixel */
 			img->ascii_data[index].ch = ch;
