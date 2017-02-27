@@ -16,11 +16,48 @@ BYTE color_index(pixelRGB_t *color)
 	dist_rg = ABS(color->r - color->g);
 	dist_gb = ABS(color->g - color->b);
 	dist_rb = ABS(color->r - color->b);
-
-	if (dist_rg + dist_gb + dist_rb < 100)
+	
+	if (dist_rg + dist_gb + dist_rb < ASCII_COLOR_COMBINATION) {
 		return 0;
-	else
-		return rand() % 6 + 1;
+	} else {
+		if (color->r > color->g) {
+			if (color->r > color->b) {
+				if (dist_rg > ASCII_COLOR_COMBINATION && dist_rb > ASCII_COLOR_COMBINATION)
+					return ASCII_COLOR_RED;
+
+				if (dist_rg < dist_rb)
+					return ASCII_COLOR_YELLOW;
+
+				return ASCII_COLOR_MAGENTA;
+			} else {
+				if (dist_gb > ASCII_COLOR_COMBINATION && dist_rb > ASCII_COLOR_COMBINATION)
+					return ASCII_COLOR_BLUE;
+
+				if (dist_gb < dist_rb)
+					return ASCII_COLOR_CYAN;
+
+				return ASCII_COLOR_MAGENTA;
+			}
+		} else {
+			if (color->g > color->b) {
+				if (dist_rg > ASCII_COLOR_COMBINATION && dist_gb > ASCII_COLOR_COMBINATION)
+					return ASCII_COLOR_GREEN;
+
+				if (dist_rg < dist_gb)
+					return ASCII_COLOR_YELLOW;
+
+				return ASCII_COLOR_CYAN;
+			} else {
+				if (dist_gb > ASCII_COLOR_COMBINATION && dist_rb > ASCII_COLOR_COMBINATION)
+					return ASCII_COLOR_BLUE;
+
+				if (dist_gb < dist_rb)
+					return ASCII_COLOR_CYAN;
+
+				return ASCII_COLOR_MAGENTA;
+			}
+		}
+	}
 }
 
 BYTE grayscale_value(BYTE *pixel, int color_type, int background)

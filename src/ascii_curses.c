@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	img.flags |= ASCII_DRAW | ASCII_CONVERT;
 
 	/* Main message loop */
-	while ((ch = getch()) != KEY_F(1)) {
+	do {
 		switch (tolower(ch)) {
 			case 'a':	img.pos_x += mv;	img.flags |= ASCII_DRAW;	break;
 			case 'd':	img.pos_x -= mv;	img.flags |= ASCII_DRAW;	break;
@@ -124,8 +124,7 @@ int main(int argc, char **argv)
 
 			img.flags ^= ASCII_DRAW;
 		}
-
-	}
+	} while ((ch = getch()) != KEY_F(1));
 
 	endwin();
 	return 0;

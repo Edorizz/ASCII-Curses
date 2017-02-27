@@ -16,6 +16,8 @@
 #define ASCII_COLOR_CYAN	6
 #define ASCII_COLOR_MAX		7
 
+#define ASCII_COLOR_COMBINATION 50
+
 #define MIN(a, b)	((a) > (b) ? (b) : (a))
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
 #define ABS(a)		((a) < 0 ? -(a) : (a))
